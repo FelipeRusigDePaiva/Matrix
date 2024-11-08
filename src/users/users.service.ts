@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { DynamoDBClient, GetItemCommand, UpdateItemCommand, ReturnValue } from '@aws-sdk/client-dynamodb';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { DynamoDBClient, GetItemCommand, UpdateItemCommand, ReturnValue, PutItemCommand } from '@aws-sdk/client-dynamodb';
 
 @Injectable()
 export class UsersService {
@@ -54,5 +54,49 @@ export class UsersService {
 
     const maxPublished = user.userType === 'free' ? 1 : 5;
     return user.decksPublished < maxPublished;
+  }
+
+  async deleteCreatedDeck(userId: string): Promise<any> {
+    const user = await this.getUser(userId);
+    if (!user || user.decksCreated <= 0) {
+      throw new Error('Nenhum deck criado para apagar.');
+    }
+    
+    const decksCreated = user.decksCreated - 1;
+    return this.updateUser(userId, decksCreated, user.decksPublished);
+  }
+
+  async deletePublishedDeck(userId: string): Promise<any> {
+    const user = await this.getUser(userId);
+    if (!user || user.decksPublished <= 0) {
+      throw new Error('Nenhum deck publicado para apagar.');
+    }
+
+    const decksPublished = user.decksPublished - 1;
+    return this.updateUser(userId, user.decksCreated, decksPublished);
+  }
+
+  async addUser(userId: string, userType: string): Promise<any> {
+    if (userType !== 'free' && userType !== 'super') {
+      throw new BadRequestException('Tipo de usuário inválido. Deve ser "free" ou "super".');
+    }
+
+    const existingUser = await this.getUser(userId);
+    if (existingUser) {
+      throw new BadRequestException('Usuário já existe.');
+    }
+
+    const params = {
+      TableName: 'Users',
+      Item: {
+        userId: { S: userId },
+        userType: { S: userType },
+        decksCreated: { N: "0" },
+        decksPublished: { N: "0" },
+      },
+    };
+
+    await this.dynamoDbClient.send(new PutItemCommand(params));
+    return { message: 'Usuário criado com sucesso', userId, userType };
   }
 }

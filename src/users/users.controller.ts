@@ -1,4 +1,4 @@
-import { Controller, Post, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Param, BadRequestException, Delete, Body } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -23,5 +23,35 @@ export class UsersController {
     const user = await this.usersService.getUser(userId);
     const decksPublished = user.decksPublished + 1;
     return this.usersService.updateUser(userId, user.decksCreated, decksPublished);
+  }
+
+  @Delete(':userId/delete-created-deck')
+  async deleteCreatedDeck(@Param('userId') userId: string) {
+    try {
+      return await this.usersService.deleteCreatedDeck(userId);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Delete(':userId/delete-published-deck')
+  async deletePublishedDeck(@Param('userId') userId: string) {
+    try {
+      return await this.usersService.deletePublishedDeck(userId);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Post()
+  async addUser(
+    @Body('userId') userId: string,
+    @Body('userType') userType: string,
+  ) {
+    try {
+      return await this.usersService.addUser(userId, userType);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
