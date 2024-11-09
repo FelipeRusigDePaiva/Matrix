@@ -1,4 +1,4 @@
-import { Controller, Post, Param, BadRequestException, Delete, Body, Get } from '@nestjs/common';
+import { Controller, Post, Param, BadRequestException, Delete, Body, Get, Patch } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -82,4 +82,15 @@ export class UsersController {
     }
   }
 
+  @Patch(':userId/type')
+  async updateUserType(
+    @Param('userId') userId: string,
+    @Body('userType') userType: string,  // Nome alterado para 'userType'
+  ) {
+    try {
+      return await this.usersService.updateUserType(userId, userType);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }

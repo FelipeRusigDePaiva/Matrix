@@ -154,4 +154,28 @@ export class UsersService {
     };
   }
 
+  async updateUserType(userId: string, userType: string): Promise<any> {
+    if (userType !== 'free' && userType !== 'super') {
+      throw new BadRequestException('Tipo de usuário inválido. Deve ser "free" ou "super".');
+    }
+  
+    const params = {
+      TableName: 'Users',
+      Key: {
+        userId: { S: userId },
+      },
+      UpdateExpression: 'SET userType = :userType',
+      ExpressionAttributeValues: {
+        ':userType': { S: userType },
+      },
+      ReturnValues: 'UPDATED_NEW' as const,
+    };
+  
+    const result = await this.dynamoDbClient.send(new UpdateItemCommand(params));
+    return {
+      message: `Tipo de usuário atualizado para ${userType}`,
+      userId,
+      updatedAttributes: result.Attributes,
+    };
+  }
 }
