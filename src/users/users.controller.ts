@@ -1,4 +1,4 @@
-import { Controller, Post, Param, BadRequestException, Delete, Body } from '@nestjs/common';
+import { Controller, Post, Param, BadRequestException, Delete, Body, Get } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -63,4 +63,23 @@ export class UsersController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Get()
+  async getAllUsers() {
+    try {
+      return await this.usersService.getAllUsers();
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  @Get(':userId')
+  async getUserById(@Param('userId') userId: string) {
+    try {
+      return await this.usersService.getUserById(userId);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
 }

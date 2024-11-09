@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { DynamoDBClient, GetItemCommand, UpdateItemCommand, ReturnValue, PutItemCommand, DeleteItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, GetItemCommand, UpdateItemCommand, ReturnValue, PutItemCommand, DeleteItemCommand, ScanCommand } from '@aws-sdk/client-dynamodb';
 
 @Injectable()
 export class UsersService {
@@ -116,4 +116,42 @@ export class UsersService {
     await this.dynamoDbClient.send(new DeleteItemCommand(params));
     return { message: 'Usuário deletado com sucesso', userId };
   }
+
+  async getAllUsers(): Promise<any[]> {
+    const params = {
+      TableName: 'Users',
+    };
+
+    const data = await this.dynamoDbClient.send(new ScanCommand(params));
+
+    return data.Items.map((item) => ({
+      userId: item.userId.S,
+      userType: item.userType.S,
+      decksCreated: Number(item.decksCreated.N),
+      decksPublished: Number(item.decksPublished.N),
+    }));
+  }
+
+  async getUserById(userId: string): Promise<any> {
+    const params = {
+      TableName: 'Users',
+      Key: {
+        userId: { S: userId },
+      },
+    };
+
+    const { Item } = await this.dynamoDbClient.send(new GetItemCommand(params));
+
+    if (!Item) {
+      throw new BadRequestException('Usuário não encontrado.');
+    }
+
+    return {
+      userId: Item.userId.S,
+      userType: Item.userType.S,
+      decksCreated: Number(Item.decksCreated.N),
+      decksPublished: Number(Item.decksPublished.N),
+    };
+  }
+
 }
