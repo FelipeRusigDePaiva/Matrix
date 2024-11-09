@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { DynamoDBClient, GetItemCommand, UpdateItemCommand, ReturnValue, PutItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, GetItemCommand, UpdateItemCommand, ReturnValue, PutItemCommand, DeleteItemCommand } from '@aws-sdk/client-dynamodb';
 
 @Injectable()
 export class UsersService {
@@ -98,5 +98,22 @@ export class UsersService {
 
     await this.dynamoDbClient.send(new PutItemCommand(params));
     return { message: 'Usuário criado com sucesso', userId, userType };
+  }
+
+  async deleteUser(userId: string): Promise<any> {
+    const user = await this.getUser(userId);
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado.');
+    }
+
+    const params = {
+      TableName: 'Users',
+      Key: {
+        userId: { S: userId },
+      },
+    };
+
+    await this.dynamoDbClient.send(new DeleteItemCommand(params));
+    return { message: 'Usuário deletado com sucesso', userId };
   }
 }

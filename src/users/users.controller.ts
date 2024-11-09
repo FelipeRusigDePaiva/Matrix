@@ -54,4 +54,13 @@ export class UsersController {
       throw new BadRequestException(error.message);
     }
   }
+
+  @Delete(':userId')
+  async deleteUser(@Param('userId') userId: string) {
+    try {
+      return await this.usersService.deleteUser(userId);
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
