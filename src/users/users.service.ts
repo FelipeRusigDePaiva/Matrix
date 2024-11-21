@@ -171,11 +171,12 @@ export class UsersService {
       ReturnValues: 'UPDATED_NEW' as const,
     };
   
-    const result = await this.dynamoDbClient.send(new UpdateItemCommand(params));
+    await this.dynamoDbClient.send(new UpdateItemCommand(params));
+  
     return {
       message: `Tipo de usuário atualizado para ${userType}`,
       userId,
-      updatedAttributes: result.Attributes,
+      userType,
     };
   }
 }

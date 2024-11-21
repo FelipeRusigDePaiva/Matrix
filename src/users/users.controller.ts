@@ -85,7 +85,7 @@ export class UsersController {
   @Patch(':userId/type')
   async updateUserType(
     @Param('userId') userId: string,
-    @Body('userType') userType: string,  // Nome alterado para 'userType'
+    @Body('userType') userType: string,
   ) {
     try {
       return await this.usersService.updateUserType(userId, userType);
